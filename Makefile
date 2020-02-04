@@ -34,8 +34,8 @@ start: build
 start-detached: build
 	$(MAKE) stop
 	docker-compose up -d
-	@echo "sleeping for 10 seconds..."
 	@echo "TODO: implement a service readiness check here"
+	@echo "sleeping for 10 seconds..."
 	@sleep 10
 
 .PHONY: stop
@@ -55,6 +55,7 @@ example-post-to-payments-api:
 	@curl \
 		--request POST \
 		--header "Content-Type: application/json" \
+		--header "X-REQUEST-ID: user-1234" \
 		--data '{"amount": "123.45", "token": "some-card-token"}' \
 		http://localhost:8000/payments/charge
 	@echo ""

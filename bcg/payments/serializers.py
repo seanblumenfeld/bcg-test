@@ -4,6 +4,7 @@ from bcg.payments.models import Ledger
 
 
 class PaymentsChargeSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Ledger
-        fields = ['amount', 'token']
+        fields = ['user_id', 'amount', 'token']

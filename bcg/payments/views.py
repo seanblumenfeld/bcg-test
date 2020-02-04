@@ -2,7 +2,6 @@ from rest_framework.exceptions import APIException
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 
-from bcg.payments.models import Ledger
 from bcg.payments.serializers import PaymentsChargeSerializer
 from bcg.payments.services import PaymentsService
 
@@ -15,22 +14,24 @@ class PaymentsServiceException(APIException):
 
 class PaymentsChargeAPIView(GenericAPIView):
     """Api to process a payment charge."""
-    queryset = Ledger.objects.all()
+    # queryset = Ledger.objects.all()
     serializer_class = PaymentsChargeSerializer
     permission_classes = []  # TODO
 
     def post(self, request, *args, **kwargs):
+        request_data = {'user_id': request.headers.get('X-REQUEST-ID')}
+        request_data.update(request.data)
+        serializer = self.get_serializer(data=request_data)
+
         # Validate request data (return 400 if bad)
-        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # send to external payments service
-        success = PaymentsService.charge_card(**serializer.validated_data)
+        points_balance = PaymentsService.charge_card(**serializer.validated_data)
 
-        if not success:
+        if not points_balance:
             raise PaymentsServiceException()
 
-        # Create record in our ledger if external payment successful
-        serializer.save()
-
-        return Response(serializer.validated_data)
+        return Response(
+            {'points_balance': points_balance}
+        )
